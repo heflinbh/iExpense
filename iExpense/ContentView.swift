@@ -8,14 +8,49 @@
 import SwiftUI
 
 struct ContentView: View {
+    
+    @StateObject var expenses = Expenses()
+    @State private var showingAddExpenses = false
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundColor(.accentColor)
-            Text("Hello, world!")
+        NavigationView {
+            List {
+                ExpenseSection(title: "Business", expenses: expenses.businessItems, deleteItems: removeBusinessItems)
+                ExpenseSection(title: "Personal", expenses: expenses.personalItems, deleteItems: removePersonalItems)
+            }
+            .navigationTitle("iExpense")
+            .toolbar {
+                Button {
+                    showingAddExpenses = true
+                } label: {
+                    Image(systemName: "plus")
+                }
+            }
+            .sheet(isPresented: $showingAddExpenses) {
+                AddView(expenses: expenses)
+            }
         }
-        .padding()
+    }
+    
+    func removeItems(at offsets: IndexSet, in inputArray: [ExpenseItem]) {
+        var objectsToDelete = IndexSet()
+        
+        for offset in offsets {
+            let item = inputArray[offset]
+            
+            if let index = expenses.items.firstIndex(of: item) {
+                objectsToDelete.insert(index)
+            }
+        }
+        expenses.items.remove(atOffsets: objectsToDelete)
+    }
+    
+    func removePersonalItems(at offsets: IndexSet) {
+        removeItems(at: offsets, in: expenses.personalItems)
+    }
+    
+    func removeBusinessItems(at offsets: IndexSet) {
+        removeItems(at: offsets, in: expenses.businessItems)
     }
 }
 
